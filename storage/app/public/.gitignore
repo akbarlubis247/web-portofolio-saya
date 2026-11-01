@@ -1,2 +1,7 @@
-*
 !.gitignore
+!avatars/
+!avatars/**
+!certifications/
+!certifications/**
+!projects/
+!projects/**

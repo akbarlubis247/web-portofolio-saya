@@ -60,9 +60,17 @@
             <h3 class="font-semibold text-slate-900">🔗 Link & Gambar</h3>
 
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">🖼️ Upload Gambar</label>
-                <input type="file" name="image" id="field-image" accept="image/*" data-crop-ratio="1.777"
+                <label class="block text-sm font-medium text-slate-700 mb-1">🖼️ Upload Gambar / Bukti Proyek</label>
+                <input type="file" name="image" id="field-image" accept="image/*"
                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm cursor-pointer">
+                <div class="flex flex-wrap items-center justify-between gap-2 mt-1.5">
+                    <p class="text-xs text-slate-500">
+                        ⚡ <strong>Otomatis 100% Penuh:</strong> Gambar langsung diunggah utuh tanpa perlu atur-atur posisi lagi.
+                    </p>
+                    <button type="button" id="btn-adjust-image" class="hidden text-xs text-cyan-600 hover:text-cyan-800 font-semibold items-center gap-1 cursor-pointer bg-cyan-50 hover:bg-cyan-100 px-2.5 py-1 rounded-md border border-cyan-200 transition-colors">
+                        ✂️ Sesuaikan / Potong Posisi (Opsional)
+                    </button>
+                </div>
             </div>
 
             <div>
@@ -73,7 +81,10 @@
             </div>
 
             @if($project?->image_url)
-                <img src="{{ $project->image_url }}" alt="" id="current-image" class="h-24 rounded object-cover border">
+                <div class="flex items-center gap-3">
+                    <img src="{{ $project->image_url }}" alt="" id="current-image" class="h-20 w-auto max-w-[160px] rounded object-contain border p-1 bg-white">
+                    <span class="text-xs text-slate-400">Gambar yang digunakan saat ini</span>
+                </div>
             @endif
 
             <div>
@@ -94,38 +105,48 @@
         </div>
     </div>
 
-    {{-- Live Preview --}}
+    {{-- Live Preview (Editorial Theme Matching Frontend) --}}
     <div class="lg:sticky lg:top-6 h-fit">
         <div class="admin-card p-6">
-            <h3 class="font-semibold text-slate-900 mb-4">👁️ Preview</h3>
-            <div id="project-preview" class="bg-slate-900 rounded-xl overflow-hidden border border-slate-700">
-                <div id="preview-image" class="aspect-video img-placeholder">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-slate-900">👁️ Live Preview Card</h3>
+                <span class="text-[11px] font-mono uppercase tracking-wider text-[#467C78] font-bold">Homepage Style</span>
+            </div>
+            <div id="project-preview" class="bg-[#F6F1E7] rounded-2xl overflow-hidden border border-[#D7D8D1] shadow-md">
+                <div id="preview-image" class="aspect-[16/10] bg-[#E8E4DA] relative overflow-hidden flex items-center justify-center border-b border-[#D7D8D1]/80">
                     @if($project?->image_url)
-                        <img src="{{ $project->image_url }}" class="w-full h-full object-cover" alt="">
+                        <img src="{{ $project->image_url }}" class="w-full h-full object-contain p-1" alt="">
                     @else
-                        <span class="text-slate-500 text-sm">Preview gambar</span>
+                        <div class="w-full h-full bg-[#1D2A35] p-6 flex flex-col justify-between text-white">
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-[#D5B98C]">[ DATA ANALYTICS ]</span>
+                            <span class="text-xs text-[#D7D8D1] font-mono">Upload / cantumkan gambar proyek</span>
+                        </div>
                     @endif
                 </div>
-                <div class="p-5">
-                    <p id="preview-date" class="text-xs text-cyan-400 mb-1">{{ $project?->project_date?->format('d M Y') ?? date('d M Y') }}</p>
-                    <h4 id="preview-title" class="text-lg font-bold text-white mb-2">{{ $project?->title ?? 'Judul Proyek' }}</h4>
-                    <p id="preview-description" class="text-sm text-slate-400 mb-3">{{ $project?->description ?? 'Deskripsi proyek akan muncul di sini...' }}</p>
-                    <div id="preview-tools" class="flex flex-wrap gap-1 mb-3">
+                <div class="p-6">
+                    <p id="preview-date" class="font-mono text-xs text-[#467C78] font-bold mb-2 uppercase tracking-widest">{{ $project?->project_date?->format('M Y') ?? date('M Y') }}</p>
+                    <h4 id="preview-title" class="text-xl font-bold text-[#1D2A35] mb-2 leading-snug">{{ $project?->title ?? 'Judul Proyek' }}</h4>
+                    <p id="preview-description" class="text-sm text-[#1D2A35]/75 mb-4 leading-relaxed">{{ $project?->description ?? 'Deskripsi proyek akan muncul di sini...' }}</p>
+                    <div id="preview-tools" class="flex flex-wrap gap-1.5 mb-4">
                         @if($project?->tools)
                             @foreach($project->tools as $tool)
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400">{{ $tool }}</span>
+                                <span class="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-full bg-[#1D2A35]/5 text-[#1D2A35] border border-[#1D2A35]/10">{{ $tool }}</span>
                             @endforeach
                         @endif
                     </div>
-                    <div class="border-t border-slate-700 pt-3 mt-3">
-                        <p class="text-xs text-violet-400 font-medium mb-1">🎯 Problem</p>
-                        <p id="preview-problem" class="text-xs text-slate-400 mb-3">{{ $project?->problem ?? '-' }}</p>
-                        <p class="text-xs text-cyan-400 font-medium mb-1">📊 Insight / Result</p>
-                        <p id="preview-insight" class="text-xs text-slate-300 whitespace-pre-line">{{ $project?->insight ?? '-' }}</p>
+                    <div class="border-t border-[#D7D8D1] pt-4 mt-2 space-y-2">
+                        <div>
+                            <p class="text-[11px] font-mono uppercase tracking-wider text-[#467C78] font-bold">🎯 Problem Statement</p>
+                            <p id="preview-problem" class="text-xs text-[#1D2A35]/70 mt-0.5 leading-relaxed">{{ $project?->problem ?? '-' }}</p>
+                        </div>
+                        <div class="pt-2">
+                            <p class="text-[11px] font-mono uppercase tracking-wider text-[#D5B98C] font-bold">📊 Insight / Result</p>
+                            <p id="preview-insight" class="text-xs text-[#1D2A35]/80 mt-0.5 leading-relaxed whitespace-pre-line">{{ $project?->insight ?? '-' }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <p class="text-xs text-slate-400 mt-3 text-center">Preview diperbarui otomatis saat Anda mengetik</p>
+            <p class="text-xs text-slate-400 mt-3 text-center">Preview merepresentasikan tampilan kartu di website publik</p>
         </div>
     </div>
 </div>

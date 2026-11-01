@@ -15,9 +15,19 @@
     <div class="flex min-h-screen">
         {{-- Sidebar --}}
         <aside class="admin-sidebar w-64 text-white flex-shrink-0 hidden lg:flex flex-col">
-            <div class="p-6 border-b border-slate-700">
-                <h1 class="text-lg font-bold">Portfolio Admin</h1>
-                <p class="text-xs text-slate-400 mt-1">{{ auth()->user()->name }}</p>
+            <div class="p-6 border-b border-slate-700 flex items-center gap-3">
+                @php $currentSetting = \App\Models\PortfolioSetting::current(); @endphp
+                <div class="w-10 h-10 rounded-full bg-slate-700 border border-slate-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    @if($currentSetting->avatar_path)
+                        <img src="{{ asset('storage/' . $currentSetting->avatar_path) }}" alt="{{ $currentSetting->name }}" class="w-full h-full object-cover">
+                    @else
+                        <span class="text-sm font-bold text-cyan-400">{{ strtoupper(substr($currentSetting->name ?? auth()->user()->name, 0, 1)) }}</span>
+                    @endif
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-sm font-bold truncate text-white">Portfolio Admin</h1>
+                    <p class="text-xs text-slate-400 truncate">{{ $currentSetting->name ?: auth()->user()->name }}</p>
+                </div>
             </div>
             <nav class="flex-1 p-4 space-y-1">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-700/50' }}">
@@ -56,14 +66,16 @@
         <div class="flex-1 flex flex-col">
             {{-- Mobile header --}}
             <header class="lg:hidden bg-slate-900 text-white p-4 flex items-center justify-between">
-                <span class="font-bold">Admin</span>
-                <div class="flex gap-2 items-center">
-                    <a href="{{ route('admin.dashboard') }}" class="text-sm text-cyan-400">Home</a>
-                    <a href="{{ route('admin.projects.index') }}" class="text-sm text-cyan-400">Projects</a>
-                    <a href="{{ route('admin.certifications.index') }}" class="text-sm text-cyan-400">Sertifikasi</a>
+                <span class="font-bold text-sm">Admin</span>
+                <div class="flex gap-2.5 items-center flex-wrap justify-end">
+                    <a href="{{ route('admin.dashboard') }}" class="text-xs {{ request()->routeIs('admin.dashboard') ? 'text-cyan-400 font-bold' : 'text-slate-300' }}">Home</a>
+                    <a href="{{ route('admin.projects.index') }}" class="text-xs {{ request()->routeIs('admin.projects.*') ? 'text-cyan-400 font-bold' : 'text-slate-300' }}">Projects</a>
+                    <a href="{{ route('admin.certifications.index') }}" class="text-xs {{ request()->routeIs('admin.certifications.*') ? 'text-cyan-400 font-bold' : 'text-slate-300' }}">Sertifikasi</a>
+                    <a href="{{ route('admin.profile.edit') }}" class="text-xs {{ request()->routeIs('admin.profile.*') ? 'text-cyan-400 font-bold' : 'text-slate-300' }}">Profil</a>
+                    <a href="{{ route('portfolio.index') }}" target="_blank" class="text-xs text-emerald-400">Website ↗</a>
                     <form action="{{ route('admin.logout') }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="text-sm text-red-400 ml-1">Logout</button>
+                        <button type="submit" class="text-xs text-red-400 ml-1">Logout</button>
                     </form>
                 </div>
             </header>
@@ -75,7 +87,7 @@
                     </div>
                 @endif
 
-                @if($errors->any())
+                @if(isset($errors) && $errors->any())
                     <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
                         <ul class="list-disc list-inside">
                             @foreach($errors->all() as $error)
@@ -92,23 +104,31 @@
 
     {{-- Reusable Cropper Modal --}}
     <div id="cropper-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
-        <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
-                <h3 class="font-bold text-slate-900 text-lg">✂️ Sesuaikan Area Foto</h3>
-                <button type="button" id="cropper-close" class="text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+        <div class="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-lg">✂️ Sesuaikan Area Foto (Opsional)</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Default seleksi sudah mencakup 100% gambar penuh. Anda bisa geser area seleksi atau langsung gunakan foto penuh.</p>
+                </div>
+                <button type="button" id="cropper-close" class="text-slate-400 hover:text-slate-600 font-bold text-xl p-1 leading-none">✕</button>
             </div>
-            <div class="p-6 overflow-hidden flex-1 flex flex-col justify-center items-center bg-slate-50 min-h-[300px]">
-                <div class="max-w-full max-h-[50vh] overflow-hidden rounded-xl">
+            <div class="p-4 overflow-hidden flex-1 flex flex-col justify-center items-center bg-slate-100/70 min-h-[300px]">
+                <div class="max-w-full max-h-[55vh] overflow-hidden rounded-xl border border-slate-200 bg-white">
                     <img id="cropper-image" src="" alt="Source Image" class="max-w-full block">
                 </div>
             </div>
-            <div class="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50">
-                <button type="button" id="cropper-cancel" class="px-5 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium text-sm">
-                    Batal
+            <div class="p-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50">
+                <button type="button" id="cropper-cancel" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 font-medium text-xs sm:text-sm">
+                    Batal / Tutup
                 </button>
-                <button type="button" id="cropper-crop" class="px-5 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium text-sm">
-                    Potong & Simpan
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="cropper-use-full" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-xs sm:text-sm flex items-center gap-1.5 shadow-sm">
+                        <span>✅ Gunakan Foto Penuh (100% Default)</span>
+                    </button>
+                    <button type="button" id="cropper-crop" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium text-xs sm:text-sm">
+                        Potong Sesuai Area
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -116,53 +136,79 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const inputs = document.querySelectorAll('input[type="file"][data-crop-ratio]');
-            if (inputs.length === 0) return;
-
             const modal = document.getElementById('cropper-modal');
             const img = document.getElementById('cropper-image');
             const closeBtn = document.getElementById('cropper-close');
             const cancelBtn = document.getElementById('cropper-cancel');
+            const useFullBtn = document.getElementById('cropper-use-full');
             const cropBtn = document.getElementById('cropper-crop');
 
             let cropper = null;
             let currentInput = null;
             let currentFile = null;
 
+            function updatePreviews(url) {
+                const previewImgEl = document.getElementById('preview-img-el') || document.querySelector('#project-preview img') || document.querySelector('#preview-image img');
+                const previewContainer = document.getElementById('preview-image') || document.getElementById('preview-image-container');
+                
+                if (previewImgEl) {
+                    previewImgEl.src = url;
+                } else if (previewContainer) {
+                    previewContainer.innerHTML = `<img src="${url}" class="w-full h-full object-contain rounded-xl" />`;
+                }
+
+                const profileAvatarPreview = document.querySelector('.flex.items-center.gap-4 img');
+                if (profileAvatarPreview) {
+                    profileAvatarPreview.src = url;
+                }
+
+                const certFullPreview = document.getElementById('cert-full-preview');
+                const certFullPreviewImg = document.getElementById('cert-full-preview-img');
+                if (certFullPreview && certFullPreviewImg) {
+                    certFullPreviewImg.src = url;
+                    certFullPreview.classList.remove('hidden');
+                }
+            }
+
+            window.openCropper = function(inputEl) {
+                if (!inputEl || !inputEl.files || !inputEl.files[0]) {
+                    alert('Silakan pilih file foto terlebih dahulu.');
+                    return;
+                }
+                currentInput = inputEl;
+                currentFile = inputEl.files[0];
+                if (!currentFile.type.startsWith('image/')) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    img.src = event.target.result;
+                    modal.classList.remove('hidden');
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    const ratioAttr = currentInput.getAttribute('data-crop-ratio');
+                    const ratio = (ratioAttr && ratioAttr !== 'free' && ratioAttr !== 'auto') ? parseFloat(ratioAttr) : NaN;
+
+                    cropper = new Cropper(img, {
+                        aspectRatio: isNaN(ratio) ? NaN : ratio, // Bebas rasio (tidak dipaksa kotak)
+                        viewMode: 1,
+                        autoCropArea: 1, // DEFAULT: 100% seleksi seluruh gambar
+                        responsive: true,
+                        restore: false,
+                    });
+                };
+                reader.readAsDataURL(currentFile);
+            };
+
+            const inputs = document.querySelectorAll('input[type="file"][data-crop-ratio]');
             inputs.forEach(input => {
                 input.addEventListener('change', (e) => {
                     const files = e.target.files;
                     if (!files || files.length === 0) return;
-
-                    const file = files[0];
-                    if (!file.type.startsWith('image/')) return;
-
-                    // If it is already our cropped blob/file, don't re-crop
-                    if (file.isCropped) return;
-
-                    currentInput = e.target;
-                    currentFile = file;
-
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        img.src = event.target.result;
-                        modal.classList.remove('hidden');
-
-                        const ratio = parseFloat(currentInput.getAttribute('data-crop-ratio')) || NaN;
-
-                        if (cropper) {
-                            cropper.destroy();
-                        }
-
-                        cropper = new Cropper(img, {
-                            aspectRatio: isNaN(ratio) ? null : ratio,
-                            viewMode: 1,
-                            autoCropArea: 0.9,
-                            responsive: true,
-                            restore: false,
-                        });
-                    };
-                    reader.readAsDataURL(file);
+                    if (files[0].isCropped) return;
+                    window.openCropper(e.target);
                 });
             });
 
@@ -172,9 +218,21 @@
                     cropper.destroy();
                     cropper = null;
                 }
-                if (currentInput && !currentInput.files[0]?.isCropped) {
-                    currentInput.value = ''; // Reset input if cancelled
+            }
+
+            function applyFullImage() {
+                if (!currentFile || !currentInput) {
+                    closeModal();
+                    return;
                 }
+                currentFile.isCropped = true;
+                const blobUrl = URL.createObjectURL(currentFile);
+                updatePreviews(blobUrl);
+                closeModal();
+            }
+
+            if (useFullBtn) {
+                useFullBtn.addEventListener('click', applyFullImage);
             }
 
             closeBtn.addEventListener('click', closeModal);
@@ -184,8 +242,8 @@
                 if (!cropper) return;
 
                 cropper.getCroppedCanvas({
-                    maxWidth: 1600,
-                    maxHeight: 1600,
+                    maxWidth: 2400,
+                    maxHeight: 2400,
                     imageSmoothingQuality: 'high'
                 }).toBlob((blob) => {
                     if (!blob) return;
@@ -194,32 +252,14 @@
                         type: currentFile.type,
                         lastModified: Date.now()
                     });
-                    croppedFile.isCropped = true; // Mark as cropped to prevent infinite loop
+                    croppedFile.isCropped = true;
 
-                    // Replace input files using DataTransfer
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(croppedFile);
                     currentInput.files = dataTransfer.files;
 
-                    // Trigger live preview update if applicable
-                    currentInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    currentInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-                    // Trigger image link preview if page has one (e.g. Project Form preview)
-                    const previewImgEl = document.getElementById('preview-img-el') || document.querySelector('#project-preview img') || document.querySelector('#preview-image img');
-                    const previewContainer = document.getElementById('preview-image') || document.getElementById('preview-image-container');
-                    
-                    if (previewImgEl) {
-                        previewImgEl.src = URL.createObjectURL(blob);
-                    } else if (previewContainer) {
-                        previewContainer.innerHTML = `<img src="${URL.createObjectURL(blob)}" class="w-full h-full object-cover rounded-xl" />`;
-                    }
-
-                    // For profile picture edit page, update the circular preview
-                    const profileAvatarPreview = document.querySelector('.flex.items-center.gap-4 img');
-                    if (profileAvatarPreview) {
-                        profileAvatarPreview.src = URL.createObjectURL(blob);
-                    }
+                    const blobUrl = URL.createObjectURL(blob);
+                    updatePreviews(blobUrl);
 
                     closeModal();
                 }, currentFile.type);

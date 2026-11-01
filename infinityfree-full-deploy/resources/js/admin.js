@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!preview.tools) return;
         const tools = value.split(/[,;]+/).map((t) => t.trim()).filter(Boolean);
         preview.tools.innerHTML = tools.map((t) =>
-            `<span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400">${t}</span>`
+            `<span class="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-full bg-[#1D2A35]/5 text-[#1D2A35] border border-[#1D2A35]/10">${t}</span>`
         ).join('');
     }
 
@@ -56,10 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
         fields.imageLink.addEventListener('input', () => {
             const url = fields.imageLink.value;
             if (url && preview.image) {
-                preview.image.innerHTML = `<img src="${url}" class="w-full h-full object-cover" alt="" onerror="this.parentElement.innerHTML='<span class=\\'text-slate-500 text-sm\\'>Gambar tidak valid</span>'">`;
+                preview.image.innerHTML = `<img src="${url}" class="w-full h-full object-contain p-1" alt="" onerror="this.parentElement.innerHTML='<span class=\\'text-slate-500 text-sm\\'>Gambar tidak valid</span>'">`;
             }
         });
     }
+
+    const adjustBtn = document.getElementById('btn-adjust-image');
 
     if (fields.imageFile) {
         fields.imageFile.addEventListener('change', (e) => {
@@ -67,11 +69,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (file && preview.image) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    preview.image.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover" alt="">`;
+                    preview.image.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-contain p-1" alt="">`;
                 };
                 reader.readAsDataURL(file);
+                if (adjustBtn) {
+                    adjustBtn.classList.remove('hidden');
+                    adjustBtn.classList.add('inline-flex');
+                }
+            } else if (adjustBtn) {
+                adjustBtn.classList.add('hidden');
+                adjustBtn.classList.remove('inline-flex');
             }
         });
+
+        if (adjustBtn) {
+            adjustBtn.addEventListener('click', () => {
+                if (window.openCropper) {
+                    window.openCropper(fields.imageFile);
+                }
+            });
+        }
     }
 
     updatePreview();

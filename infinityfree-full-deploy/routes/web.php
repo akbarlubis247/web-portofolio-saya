@@ -14,6 +14,9 @@ Route::get('/favicon.ico', fn () => redirect(asset('favicon.svg')));
 Route::get('/', [PortfolioController::class, 'index'])->name('portfolio.index');
 Route::get('/projects/{project:slug}', [PortfolioController::class, 'showProject'])->name('portfolio.project');
 
+// Shortcut /login redirect to admin login
+Route::get('/login', fn () => redirect()->route('admin.login'));
+
 // Admin authentication
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -22,7 +25,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::patch('projects/{project}/toggle-publish', [ProjectController::class, 'togglePublish'])->name('projects.toggle-publish');
         Route::resource('projects', ProjectController::class)->except(['show']);
+        Route::patch('certifications/{certification}/toggle-publish', [CertificationController::class, 'togglePublish'])->name('certifications.toggle-publish');
         Route::resource('certifications', CertificationController::class)->except(['show']);
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -28,7 +28,7 @@ class ProfileController extends Controller
             'linkedin' => ['nullable', 'url'],
             'github' => ['nullable', 'url'],
             'skills' => ['nullable', 'string'],
-            'avatar' => ['nullable', 'image', 'max:2048'],
+            'avatar' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,bmp,heic,heif,jfif,avif', 'max:25600'],
         ]);
 
         $settings = PortfolioSetting::current();
@@ -44,6 +44,15 @@ class ProfileController extends Controller
         $settings->skills = $this->parseSkills($request->input('skills'));
         $settings->fill(collect($data)->except(['skills', 'avatar'])->toArray());
         $settings->save();
+
+        if (auth()->check()) {
+            $user = auth()->user();
+            $user->name = $data['name'];
+            if (!empty($data['email'])) {
+                $user->email = $data['email'];
+            }
+            $user->save();
+        }
 
         return redirect()->route('admin.profile.edit')
             ->with('success', 'Profil portofolio berhasil diperbarui.');

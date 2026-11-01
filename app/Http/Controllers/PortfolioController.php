@@ -14,7 +14,11 @@ class PortfolioController extends Controller
         $skills = $settings->skills ?: $this->defaultSkills();
         $certifications = \App\Models\Certification::published()->ordered()->get();
 
-        return view('portfolio.index', compact('settings', 'projects', 'skills', 'certifications'));
+        return response()
+            ->view('portfolio.index', compact('settings', 'projects', 'skills', 'certifications'))
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function showProject(Project $project)

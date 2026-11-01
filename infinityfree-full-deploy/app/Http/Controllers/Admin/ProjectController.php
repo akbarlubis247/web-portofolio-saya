@@ -27,11 +27,13 @@ class ProjectController extends Controller
         $data['tools'] = $this->parseTools($request->input('tools'));
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['is_published'] = $request->input('action') !== 'draft';
+        $data['github_link'] = $this->normalizeUrl($request->input('github_link'));
+        $data['demo_link'] = $this->normalizeUrl($request->input('demo_link'));
 
         if ($request->hasFile('image')) {
             $data['image_url'] = $request->file('image')->store('projects', 'public');
         } elseif ($request->filled('image_link')) {
-            $data['image_url'] = $request->input('image_link');
+            $data['image_url'] = $this->normalizeUrl($request->input('image_link'));
         }
 
         Project::create($data);
@@ -53,11 +55,17 @@ class ProjectController extends Controller
         $data = $this->validateProject($request);
         $data['tools'] = $this->parseTools($request->input('tools'));
         $data['is_published'] = $request->input('action') !== 'draft';
+        $data['github_link'] = $this->normalizeUrl($request->input('github_link'));
+        $data['demo_link'] = $this->normalizeUrl($request->input('demo_link'));
 
         if ($request->hasFile('image')) {
+            $rawOld = $project->getRawOriginal('image_url');
+            if ($rawOld && ! str_starts_with($rawOld, 'http') && \Illuminate\Support\Facades\Storage::disk('public')->exists($rawOld)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($rawOld);
+            }
             $data['image_url'] = $request->file('image')->store('projects', 'public');
         } elseif ($request->filled('image_link')) {
-            $data['image_url'] = $request->input('image_link');
+            $data['image_url'] = $this->normalizeUrl($request->input('image_link'));
         }
 
         if ($project->title !== $data['title']) {
@@ -67,18 +75,32 @@ class ProjectController extends Controller
         $project->update($data);
 
         $message = $data['is_published']
-            ? 'Proyek berhasil diperbarui.'
+            ? 'Proyek berhasil diperbarui dan dipublikasikan.'
             : 'Draft proyek berhasil disimpan.';
 
         return redirect()->route('admin.projects.index')->with('success', $message);
     }
 
+    public function togglePublish(Project $project)
+    {
+        $project->is_published = ! $project->is_published;
+        $project->save();
+
+        $status = $project->is_published ? 'dipublikasikan ke website publik' : 'disembunyikan (draft)';
+        return back()->with('success', "Proyek '{$project->title}' berhasil {$status}.");
+    }
+
     public function destroy(Project $project)
     {
+        $raw = $project->getRawOriginal('image_url');
+        if ($raw && ! str_starts_with($raw, 'http') && \Illuminate\Support\Facades\Storage::disk('public')->exists($raw)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($raw);
+        }
+
         $project->delete();
 
         return redirect()->route('admin.projects.index')
-            ->with('success', 'Proyek berhasil dihapus.');
+            ->with('success', 'Proyek berhasil dihapus dari sistem dan website publik.');
     }
 
     private function validateProject(Request $request): array
@@ -89,12 +111,27 @@ class ProjectController extends Controller
             'problem' => ['nullable', 'string'],
             'insight' => ['nullable', 'string'],
             'tools' => ['nullable', 'string'],
-            'image_link' => ['nullable', 'url'],
-            'image' => ['nullable', 'image', 'max:2048'],
-            'github_link' => ['nullable', 'url'],
-            'demo_link' => ['nullable', 'url'],
+            'image_link' => ['nullable', 'string', 'max:500'],
+            'image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,bmp,heic,heif,jfif,avif', 'max:25600'],
+            'github_link' => ['nullable', 'string', 'max:500'],
+            'demo_link' => ['nullable', 'string', 'max:500'],
             'project_date' => ['nullable', 'date'],
         ]);
+    }
+
+    private function normalizeUrl(?string $url): ?string
+    {
+        if (! $url) {
+            return null;
+        }
+
+        $url = trim($url);
+
+        if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+            return 'https://'.$url;
+        }
+
+        return $url;
     }
 
     private function parseTools(?string $tools): array

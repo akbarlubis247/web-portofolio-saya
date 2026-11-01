@@ -16,7 +16,7 @@
       "dest": "/storage/app/public/$1"
     },
     {
-      "src": "/(favicon\\.ico|favicon\\.svg|robots\\.txt|images/.*)",
+      "src": "/(.*\\.(ico|svg|css|js|png|jpg|jpeg|gif|webp|woff|woff2|ttf|eot|txt))",
       "dest": "/public/$1"
     },
     {

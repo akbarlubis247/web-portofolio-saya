@@ -18,8 +18,8 @@
             <div class="p-6 border-b border-slate-700 flex items-center gap-3">
                 @php $currentSetting = \App\Models\PortfolioSetting::current(); @endphp
                 <div class="w-10 h-10 rounded-full bg-slate-700 border border-slate-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    @if($currentSetting->avatar_path)
-                        <img src="{{ asset('storage/' . $currentSetting->avatar_path) }}" alt="{{ $currentSetting->name }}" class="w-full h-full object-cover">
+                    @if($currentSetting->avatar_url)
+                        <img src="{{ $currentSetting->avatar_url }}" alt="{{ $currentSetting->name }}" class="w-full h-full object-cover">
                     @else
                         <span class="text-sm font-bold text-cyan-400">{{ strtoupper(substr($currentSetting->name ?? auth()->user()->name, 0, 1)) }}</span>
                     @endif

@@ -246,8 +246,8 @@
                 {{-- Avatar & Bio --}}
                 <div class="flex flex-col items-center text-center pb-5 border-b border-slate-100">
                     <div class="w-20 h-20 rounded-full bg-slate-100 border-2 border-cyan-500/30 overflow-hidden mb-3 shadow-xs flex items-center justify-center">
-                        @if($settings->avatar_path)
-                            <img src="{{ asset('storage/' . $settings->avatar_path) }}" alt="{{ $settings->name }}" class="w-full h-full object-cover">
+                        @if($settings->avatar_url)
+                            <img src="{{ $settings->avatar_url }}" alt="{{ $settings->name }}" class="w-full h-full object-cover">
                         @else
                             <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         @endif

@@ -27,6 +27,17 @@ class PortfolioSetting extends Model
         ];
     }
 
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return str_starts_with($this->avatar_path, 'http://') || str_starts_with($this->avatar_path, 'https://')
+            ? $this->avatar_path
+            : asset('storage/'.$this->avatar_path);
+    }
+
     public static function current(): self
     {
         return static::firstOrCreate([], [

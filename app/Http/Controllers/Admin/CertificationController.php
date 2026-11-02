@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Certification;
+use App\Services\SupabaseMedia;
 use Illuminate\Http\Request;
 
 class CertificationController extends Controller
@@ -20,14 +21,14 @@ class CertificationController extends Controller
         return view('admin.certifications.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SupabaseMedia $media)
     {
         $data = $this->validateCertification($request);
         $data['is_published'] = $request->input('action') !== 'draft';
         $data['credential_url'] = $this->normalizeUrl($request->input('credential_url'));
 
         if ($request->hasFile('image')) {
-            $data['image_url'] = $request->file('image')->store('certifications', 'public');
+            $data['image_url'] = $media->upload($request->file('image'), 'certifications');
         } elseif ($request->filled('image_link')) {
             $data['image_url'] = $this->normalizeUrl($request->input('image_link'));
         }
@@ -46,18 +47,15 @@ class CertificationController extends Controller
         return view('admin.certifications.edit', compact('certification'));
     }
 
-    public function update(Request $request, Certification $certification)
+    public function update(Request $request, Certification $certification, SupabaseMedia $media)
     {
         $data = $this->validateCertification($request);
         $data['is_published'] = $request->input('action') !== 'draft';
         $data['credential_url'] = $this->normalizeUrl($request->input('credential_url'));
 
         if ($request->hasFile('image')) {
-            $rawOld = $certification->getRawOriginal('image_url');
-            if ($rawOld && ! str_starts_with($rawOld, 'http') && \Illuminate\Support\Facades\Storage::disk('public')->exists($rawOld)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($rawOld);
-            }
-            $data['image_url'] = $request->file('image')->store('certifications', 'public');
+            $media->delete($certification->getRawOriginal('image_url'));
+            $data['image_url'] = $media->upload($request->file('image'), 'certifications');
         } elseif ($request->filled('image_link')) {
             $data['image_url'] = $this->normalizeUrl($request->input('image_link'));
         }
@@ -80,12 +78,9 @@ class CertificationController extends Controller
         return back()->with('success', "Sertifikasi '{$certification->title}' berhasil {$status}.");
     }
 
-    public function destroy(Certification $certification)
+    public function destroy(Certification $certification, SupabaseMedia $media)
     {
-        $raw = $certification->getRawOriginal('image_url');
-        if ($raw && ! str_starts_with($raw, 'http') && \Illuminate\Support\Facades\Storage::disk('public')->exists($raw)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($raw);
-        }
+        $media->delete($certification->getRawOriginal('image_url'));
 
         $certification->delete();
 

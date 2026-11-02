@@ -46,8 +46,8 @@
                         {{-- Main visual container --}}
                         <div class="relative bg-white rounded-3xl p-3 border border-[#D7D8D1] shadow-xl tilt-card">
                             <div class="w-full aspect-[4/4.8] rounded-2xl overflow-hidden relative group bg-[#E8E4DA]">
-                                @if($settings->avatar_path)
-                                    <img src="{{ asset('storage/' . $settings->avatar_path) }}" alt="{{ $settings->name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                @if($settings->avatar_url)
+                                    <img src="{{ $settings->avatar_url }}" alt="{{ $settings->name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                     <div class="hidden w-full h-full bg-[#1D2A35] flex flex-col items-center justify-center text-center p-6 text-[#F6F1E7]">
                                         <div class="w-20 h-20 rounded-2xl bg-[#D5B98C] text-[#1D2A35] flex items-center justify-center mb-4 font-bold text-3xl">
                                             {{ strtoupper(substr($settings->name, 0, 1)) }}

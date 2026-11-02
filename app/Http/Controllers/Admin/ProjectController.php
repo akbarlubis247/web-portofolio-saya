@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\SupabaseMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -21,7 +22,7 @@ class ProjectController extends Controller
         return view('admin.projects.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SupabaseMedia $media)
     {
         $data = $this->validateProject($request);
         $data['tools'] = $this->parseTools($request->input('tools'));
@@ -31,7 +32,7 @@ class ProjectController extends Controller
         $data['demo_link'] = $this->normalizeUrl($request->input('demo_link'));
 
         if ($request->hasFile('image')) {
-            $data['image_url'] = $request->file('image')->store('projects', 'public');
+            $data['image_url'] = $media->upload($request->file('image'), 'projects');
         } elseif ($request->filled('image_link')) {
             $data['image_url'] = $this->normalizeUrl($request->input('image_link'));
         }
@@ -50,7 +51,7 @@ class ProjectController extends Controller
         return view('admin.projects.edit', compact('project'));
     }
 
-    public function update(Request $request, Project $project)
+    public function update(Request $request, Project $project, SupabaseMedia $media)
     {
         $data = $this->validateProject($request);
         $data['tools'] = $this->parseTools($request->input('tools'));
@@ -59,11 +60,8 @@ class ProjectController extends Controller
         $data['demo_link'] = $this->normalizeUrl($request->input('demo_link'));
 
         if ($request->hasFile('image')) {
-            $rawOld = $project->getRawOriginal('image_url');
-            if ($rawOld && ! str_starts_with($rawOld, 'http') && \Illuminate\Support\Facades\Storage::disk('public')->exists($rawOld)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($rawOld);
-            }
-            $data['image_url'] = $request->file('image')->store('projects', 'public');
+            $media->delete($project->getRawOriginal('image_url'));
+            $data['image_url'] = $media->upload($request->file('image'), 'projects');
         } elseif ($request->filled('image_link')) {
             $data['image_url'] = $this->normalizeUrl($request->input('image_link'));
         }
@@ -90,12 +88,9 @@ class ProjectController extends Controller
         return back()->with('success', "Proyek '{$project->title}' berhasil {$status}.");
     }
 
-    public function destroy(Project $project)
+    public function destroy(Project $project, SupabaseMedia $media)
     {
-        $raw = $project->getRawOriginal('image_url');
-        if ($raw && ! str_starts_with($raw, 'http') && \Illuminate\Support\Facades\Storage::disk('public')->exists($raw)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($raw);
-        }
+        $media->delete($project->getRawOriginal('image_url'));
 
         $project->delete();
 

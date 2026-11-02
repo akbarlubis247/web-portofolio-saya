@@ -22,8 +22,8 @@
                     {{-- Foto Profil --}}
                     <div class="flex items-center gap-4 pb-4 border-b border-slate-100">
                         <div class="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0">
-                            @if($settings->avatar_path)
-                                <img id="profile-avatar-img" src="{{ asset('storage/' . $settings->avatar_path) }}" alt="{{ $settings->name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                            @if($settings->avatar_url)
+                                <img id="profile-avatar-img" src="{{ $settings->avatar_url }}" alt="{{ $settings->name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                 <svg class="hidden w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
@@ -143,8 +143,8 @@
                                     <div class="absolute -inset-1 rounded-2xl bg-[#D5B98C]/30 rotate-2 border border-[#D5B98C]/60"></div>
                                     <div class="relative bg-white rounded-2xl p-2 border border-[#D7D8D1] shadow-md">
                                         <div class="w-full aspect-[4/4.8] rounded-xl overflow-hidden bg-[#E8E4DA] flex items-center justify-center">
-                                            @if($settings->avatar_path)
-                                                <img id="preview-avatar-img" src="{{ asset('storage/' . $settings->avatar_path) }}" alt="" class="w-full h-full object-cover">
+                                            @if($settings->avatar_url)
+                                                <img id="preview-avatar-img" src="{{ $settings->avatar_url }}" alt="" class="w-full h-full object-cover">
                                             @else
                                                 <div id="preview-avatar-img" class="w-full h-full bg-[#1D2A35] flex items-center justify-center text-white font-bold text-2xl">
                                                     {{ strtoupper(substr($settings->name, 0, 1)) }}

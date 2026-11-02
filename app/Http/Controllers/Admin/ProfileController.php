@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PortfolioSetting;
+use App\Services\SupabaseMedia;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
@@ -15,7 +16,7 @@ class ProfileController extends Controller
         return view('admin.profile.edit', compact('settings'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request, SupabaseMedia $media)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -35,10 +36,9 @@ class ProfileController extends Controller
 
         if ($request->hasFile('avatar')) {
             if ($settings->avatar_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($settings->avatar_path);
+                $media->delete($settings->avatar_path);
             }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $settings->avatar_path = $path;
+            $settings->avatar_path = $media->upload($request->file('avatar'), 'avatars');
         }
 
         $settings->skills = $this->parseSkills($request->input('skills'));

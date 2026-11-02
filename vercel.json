@@ -14,7 +14,7 @@
     },
     {
       "src": "/storage/(.*)",
-      "dest": "/storage/app/public/$1"
+      "dest": "/public/storage/$1"
     },
     {
       "src": "/(.*\\.(ico|svg|css|js|png|jpg|jpeg|gif|webp|woff|woff2|ttf|eot|txt))",
